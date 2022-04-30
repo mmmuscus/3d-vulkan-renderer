@@ -19,8 +19,8 @@ vec3 shade(vec3 normal, vec3 lightDir, float lightDist, vec3 powerDensity, vec3 
     return cosa * powerDensity / (lightDist * lightDist) * materialColor;
 }
 
-vec3 testLightPowerDensity = vec3(5.0, 2.0, 2.0);
-vec3 testLightPos = vec3(0.0, 0.0, 0.5);
+vec3 testLightPowerDensity = light.powerDensity;// vec3(5.0, 2.0, 2.0);
+vec3 testLightPos = light.pos;//vec3(0.0, 0.0, 0.5);
 
 void main() {
     outColor = texture(texSampler, fragTexCoord);
