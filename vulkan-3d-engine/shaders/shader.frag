@@ -19,15 +19,12 @@ vec3 shade(vec3 normal, vec3 lightDir, float lightDist, vec3 powerDensity, vec3 
     return cosa * powerDensity / (lightDist * lightDist) * materialColor;
 }
 
-vec3 testLightPowerDensity = light.powerDensity;// vec3(5.0, 2.0, 2.0);
-vec3 testLightPos = light.pos;//vec3(0.0, 0.0, 0.5);
-
 void main() {
     outColor = texture(texSampler, fragTexCoord);
     outColor = vec4(normal, 1.0);
 
-    vec3 lightDir = testLightPos - worldPos;
+    vec3 lightDir = light.pos - worldPos;
 
     outColor = vec4(0.0, 0.0, 0.0, 1.0);
-    outColor.xyz += shade(normalize(normal), normalize(lightDir), length(lightDir), testLightPowerDensity, texture(texSampler, fragTexCoord).xyz);
+    outColor.xyz += shade(normalize(normal), normalize(lightDir), length(lightDir), light.powerDensity, texture(texSampler, fragTexCoord).xyz);
 }
