@@ -143,6 +143,11 @@ struct UniformBufferObject {
     alignas(16) glm::mat4 proj;
 };
 
+/*struct LightBufferObject {
+    alignas(16) glm::vec3 pos;
+    alignas(16) glm::vec3 powerDensity;
+};*/
+
 class HelloTriangleApplication {
 public:
     void run() {
@@ -197,6 +202,9 @@ private:
 
     std::vector<VkBuffer> uniformBuffers;
     std::vector<VkDeviceMemory> uniformBuffersMemory;
+
+    //std::vector<VkBuffer> lightBuffers;
+    //std::vector<VkDeviceMemory> lightBuffersMemory;
 
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
@@ -613,6 +621,13 @@ private:
         samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         samplerLayoutBinding.pImmutableSamplers = nullptr;
         samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+        /*VkDescriptorSetLayoutBinding lightLayoutBinding{};
+        lightLayoutBinding.binding = 2;
+        lightLayoutBinding.descriptorCount = 1;
+        lightLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        lightLayoutBinding.pImmutableSamplers = nullptr;
+        lightLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;*/
 
         std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
