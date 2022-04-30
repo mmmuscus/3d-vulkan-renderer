@@ -143,10 +143,10 @@ struct UniformBufferObject {
     alignas(16) glm::mat4 proj;
 };
 
-/*struct LightBufferObject {
+struct LightBufferObject {
     alignas(16) glm::vec3 pos;
     alignas(16) glm::vec3 powerDensity;
-};*/
+};
 
 class HelloTriangleApplication {
 public:
@@ -203,8 +203,8 @@ private:
     std::vector<VkBuffer> uniformBuffers;
     std::vector<VkDeviceMemory> uniformBuffersMemory;
 
-    //std::vector<VkBuffer> lightBuffers;
-    //std::vector<VkDeviceMemory> lightBuffersMemory;
+    std::vector<VkBuffer> lightBuffers;
+    std::vector<VkDeviceMemory> lightBuffersMemory;
 
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
@@ -295,6 +295,9 @@ private:
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             vkDestroyBuffer(device, uniformBuffers[i], nullptr);
             vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+
+            vkDestroyBuffer(device, lightBuffers[i], nullptr);
+            vkFreeMemory(device, lightBuffersMemory[i], nullptr);
         }
 
         vkDestroyDescriptorPool(device, descriptorPool, nullptr);
@@ -622,14 +625,14 @@ private:
         samplerLayoutBinding.pImmutableSamplers = nullptr;
         samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        /*VkDescriptorSetLayoutBinding lightLayoutBinding{};
+        VkDescriptorSetLayoutBinding lightLayoutBinding{};
         lightLayoutBinding.binding = 2;
         lightLayoutBinding.descriptorCount = 1;
         lightLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         lightLayoutBinding.pImmutableSamplers = nullptr;
-        lightLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;*/
+        lightLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        std::array<VkDescriptorSetLayoutBinding, 2> bindings = { uboLayoutBinding, samplerLayoutBinding };
+        std::array<VkDescriptorSetLayoutBinding, 3> bindings = { uboLayoutBinding, samplerLayoutBinding };
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -1118,6 +1121,15 @@ private:
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
         }
+
+        bufferSize = sizeof(LightBufferObject);
+
+        lightBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+        lightBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, lightBuffers[i], lightBuffersMemory[i]);
+        }
     }
 
     void createDescriptorPool() {
@@ -1363,6 +1375,15 @@ private:
         vkMapMemory(device, uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
         memcpy(data, &ubo, sizeof(ubo));
         vkUnmapMemory(device, uniformBuffersMemory[currentImage]);
+
+        LightBufferObject lbo{};
+        lbo.pos = glm::vec3(0.0, 0.0, 0.5);
+        lbo.powerDensity = glm::vec3(5.0, 2.0, 2.0);
+
+        void* lData;
+        vkMapMemory(device, lightBuffersMemory[currentImage], 0, sizeof(lbo), 0, &lData);
+        memcpy(lData, &lbo, sizeof(lbo));
+        vkUnmapMemory(device, lightBuffersMemory[currentImage]);
     }
 
     void drawFrame() {
