@@ -15,6 +15,12 @@ vec3 shade(vec3 normal, vec3 lightDir, vec3 powerDensity, vec3 materialColor) {
 }
 
 void main() {
-    outColor = texture(texSampler, fragTexCoord);
-    outColor = vec4(normal, 1.0);
+    vec3 testLightPowerDensity = vec3(5.0, 5.0, 5.0);
+    vec3 testLightPos = vec3(0.0, 0.0, 1.5);
+
+    //outColor = texture(texSampler, fragTexCoord);
+    //outColor = vec4(normal, 1.0);
+
+    outColor = vec4(0.0, 0.0, 0.0, 1.0);
+    outColor.xyz += shade(normal, testLightPos, testLightPowerDensity, texture(texSampler, fragTexCoord).xyz);
 }
