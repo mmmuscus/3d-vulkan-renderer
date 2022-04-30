@@ -21,5 +21,5 @@ void main() {
     fragColor = inColor;
     fragTexCoord = inTexCoord;
     normal = inNormal;
-    worldPos = (ubo.model * vec4(inPosition, 1.0)).xyz;
+    worldPos = (vec4(inPosition, 1.0) * ubo.model).xyz;
 }
