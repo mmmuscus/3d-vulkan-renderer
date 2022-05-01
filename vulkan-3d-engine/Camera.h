@@ -86,12 +86,12 @@ private:
 
 	void updateCameraVectors()
 	{
-		/*glm::vec3 newForward;
+		glm::vec3 newForward;
 		newForward.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
 		newForward.y = sin(glm::radians(pitch));
 		newForward.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 
-		forward = glm::normalize(newForward);*/
+		forward = glm::normalize(newForward);
 
 		right = glm::normalize(glm::cross(forward, worldUp));
 		up = glm::normalize(glm::cross(right, forward));
