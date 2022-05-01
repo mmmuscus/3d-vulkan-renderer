@@ -29,6 +29,8 @@
 #include <set>
 #include <unordered_map>
 
+#include "Camera.h"
+
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
@@ -50,6 +52,9 @@ const bool enableValidationLayers = false;
 #else
 const bool enableValidationLayers = true;
 #endif
+
+//void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+//void processInput(GLFWwindow* window);
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -216,6 +221,8 @@ private:
     std::vector<VkFence> inFlightFences;
     uint32_t currentFrame = 0;
 
+    Camera camera = Camera(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
     bool framebufferResized = false;
 
     void initWindow() {
@@ -258,6 +265,8 @@ private:
         createDescriptorSets();
         createCommandBuffers();
         createSyncObjects();
+
+        initGlfwInputHandling();
     }
 
     void mainLoop() {
@@ -1371,6 +1380,13 @@ private:
         }
     }
 
+    void initGlfwInputHandling() {
+        //glfwMakeContextCurrent(window);
+        //glfwSetCursorPosCallback(window, mouse_callback);
+
+        //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
+
     void updateUniformBuffer(uint32_t currentImage) {
         static auto startTime = std::chrono::high_resolution_clock::now();
 
@@ -1381,8 +1397,9 @@ private:
         ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));// *glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         
         glm::vec3 cameraPos = glm::vec3(3.0f * sin(time * glm::radians(90.0f)), 3.0f * cos(time * glm::radians(90.0f)), 2.0);
-        
-        ubo.view = glm::lookAt(cameraPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        camera.pos = glm::vec3(3.0f * sin(time * glm::radians(90.0f)), 3.0f * cos(time * glm::radians(90.0f)), 2.0);
+
+        ubo.view = glm::lookAt(camera.pos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
         ubo.proj[1][1] *= -1;
 
