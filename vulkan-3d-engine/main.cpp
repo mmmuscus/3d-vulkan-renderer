@@ -258,6 +258,12 @@ private:
     std::vector<VkFence> inFlightFences;
     uint32_t currentFrame = 0;
 
+    std::chrono::high_resolution_clock::time_point startTime;
+    std::chrono::high_resolution_clock::time_point currentTime;
+    std::chrono::high_resolution_clock::time_point lastTime;
+    float time;
+    float deltaTime;
+
     bool framebufferResized = false;
 
     void initWindow() {
@@ -305,9 +311,14 @@ private:
     }
 
     void mainLoop() {
+        startTime = std::chrono::high_resolution_clock::now();
+        lastTime = startTime;
+        
         while (!glfwWindowShouldClose(window)) {
+            updateTime();
+
             glfwPollEvents();
-            //processInput(window);
+            processInput(window, deltaTime);
 
             drawFrame();
         }
@@ -1425,10 +1436,10 @@ private:
     }
 
     void updateUniformBuffer(uint32_t currentImage) {
-        static auto startTime = std::chrono::high_resolution_clock::now();
+        /*static auto startTime = std::chrono::high_resolution_clock::now();
 
         auto currentTime = std::chrono::high_resolution_clock::now();
-        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();*/
 
         UniformBufferObject ubo{};
         ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));// *glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -1452,6 +1463,16 @@ private:
         vkMapMemory(device, lightBuffersMemory[currentImage], 0, sizeof(lbo), 0, &lData);
         memcpy(lData, &lbo, sizeof(lbo));
         vkUnmapMemory(device, lightBuffersMemory[currentImage]);
+    }
+
+    void updateTime()
+    {
+        currentTime = std::chrono::high_resolution_clock::now();
+
+        time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+        deltaTime = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - lastTime).count();
+
+        lastTime = currentTime;
     }
 
     void drawFrame() {
