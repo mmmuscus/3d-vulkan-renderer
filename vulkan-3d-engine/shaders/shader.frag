@@ -25,6 +25,6 @@ void main() {
 
     vec3 lightDir = light.pos - worldPos;
 
-    outColor = vec4(0.0, 0.0, 0.0, 1.0);
+    //outColor = vec4(0.0, 0.0, 0.0, 1.0);
     outColor.xyz += shade(normalize(normal), normalize(lightDir), length(lightDir), light.powerDensity, texture(texSampler, fragTexCoord).xyz);
 }

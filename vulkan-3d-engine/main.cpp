@@ -53,8 +53,8 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 
-//Camera camera = Camera(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), -135.0f, -45.0f);
-Camera camera = Camera(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+Camera camera = Camera(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), -135.0f, -45.0f);
+//Camera camera = Camera(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
 float lastX = WIDTH / 2.0f;
 float lastY = HEIGHT / 2.0;
@@ -75,7 +75,15 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     lastX = xpos;
     lastY = ypos;
 
+    //camera.processMouseMovement(xOffset, 0);
+    //camera.processMouseMovement(0, yOffset);
     //camera.processMouseMovement(xOffset, yOffset);
+    //camera.processMouseMovement(yOffset, xOffset);
+    //camera.processMouseMovement(yOffset, 0);
+    //camera.processMouseMovement(0, xOffset);
+
+    //printf("pos + fwd: (%f + %f, %f + %f, %f + %f) ", camera.pos.x, camera.forward.x, camera.pos.y, camera.forward.y, camera.pos.z, camera.forward.z);
+    //printf("yaw: %f, pitch: %f\n", camera.yaw, camera.pitch);
 }
 
 void processInput(GLFWwindow* window, float deltaTime)
@@ -1449,8 +1457,6 @@ private:
 
         //ubo.view = glm::lookAt(cameraPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         
-        printf("pos: (%f, %f, %f) ", camera.pos.x, camera.pos.y, camera.pos.z);
-        printf("pos + fwd: (%f, %f, %f)\n", camera.pos.x + camera.forward.x, camera.pos.y + camera.forward.y, camera.pos.z + camera.forward.z);
         ubo.view = camera.getViewMatrix();
 
         ubo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);

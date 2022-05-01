@@ -4,8 +4,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <vector>
-
 enum Direction {
 	FORWARD, BACKWARD, LEFT, RIGHT, UP, DOWN
 };
@@ -34,7 +32,7 @@ public:
 	Camera(glm::vec3 _pos, glm::vec3 _forward, glm::vec3 _worldUp, float _yaw = YAW, float _pitch = PITCH, float _moveSpeed = SPEED, float _mouseSens = SENS)
 	{
 		pos = _pos;
-		forward = _forward;
+		//forward = _forward;
 		worldUp = _worldUp;
 		yaw = _yaw;
 		pitch = _pitch;
