@@ -29,10 +29,9 @@ public:
 	float moveSpeed;
 	float mouseSens;
 
-	Camera(glm::vec3 _pos, glm::vec3 _forward, glm::vec3 _worldUp, float _yaw = YAW, float _pitch = PITCH, float _moveSpeed = SPEED, float _mouseSens = SENS)
+	Camera(glm::vec3 _pos, glm::vec3 _worldUp, float _yaw = YAW, float _pitch = PITCH, float _moveSpeed = SPEED, float _mouseSens = SENS)
 	{
 		pos = _pos;
-		//forward = _forward;
 		worldUp = _worldUp;
 		yaw = _yaw;
 		pitch = _pitch;
@@ -86,9 +85,10 @@ private:
 	void updateCameraVectors()
 	{
 		glm::vec3 newForward;
+
 		newForward.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-		newForward.y = sin(glm::radians(pitch));
-		newForward.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+		newForward.y = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+		newForward.z = sin(glm::radians(pitch));
 
 		forward = glm::normalize(newForward);
 

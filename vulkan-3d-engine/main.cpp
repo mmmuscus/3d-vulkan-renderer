@@ -53,8 +53,7 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 
-Camera camera = Camera(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), -135.0f, -45.0f);
-//Camera camera = Camera(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+Camera camera = Camera(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 1.0f), -135.0f, -45.0f);
 
 float lastX = WIDTH / 2.0f;
 float lastY = HEIGHT / 2.0;
@@ -69,21 +68,15 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
         firstMouse = false;
     }
 
-    float xOffset = xpos - lastX;
+    // reversed cos windows funykness(?)
+    // TODO: look into this
+    float xOffset = lastX - xpos;
     float yOffset = lastY - ypos;
 
     lastX = xpos;
     lastY = ypos;
 
-    //camera.processMouseMovement(xOffset, 0);
-    //camera.processMouseMovement(0, yOffset);
-    //camera.processMouseMovement(xOffset, yOffset);
-    //camera.processMouseMovement(yOffset, xOffset);
-    //camera.processMouseMovement(yOffset, 0);
-    //camera.processMouseMovement(0, xOffset);
-
-    //printf("pos + fwd: (%f + %f, %f + %f, %f + %f) ", camera.pos.x, camera.forward.x, camera.pos.y, camera.forward.y, camera.pos.z, camera.forward.z);
-    //printf("yaw: %f, pitch: %f\n", camera.yaw, camera.pitch);
+    camera.processMouseMovement(xOffset, yOffset);
 }
 
 void processInput(GLFWwindow* window, float deltaTime)
@@ -1469,7 +1462,7 @@ private:
 
         LightBufferObject lbo{};
         lbo.pos = glm::vec3(0.0f, 0.0f, 0.5f);
-        lbo.powerDensity = glm::vec3(5.0f, 2.0f, 2.0f);
+        lbo.powerDensity = glm::vec3(2.0f, 2.0f, 2.0f);
 
         void* lData;
         vkMapMemory(device, lightBuffersMemory[currentImage], 0, sizeof(lbo), 0, &lData);
