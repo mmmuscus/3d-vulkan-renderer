@@ -1,10 +1,15 @@
 #version 450
 
 layout(binding = 0) uniform UniformBufferObject {
-    mat4 model;
-    mat4 view;
-    mat4 proj;
-} ubo;
+    mat4 modelMatrix;
+} model;
+layout(binding = 2) uniform LightBufferObject {
+    mat4 viewMatrix;
+    mat4 projMatrix;
+    
+    vec3 lightPos;
+    vec3 lightPowerDensity;
+} scene;
 
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inNormal;
@@ -17,9 +22,9 @@ layout(location = 2) out vec3 normal;
 layout(location = 3) out vec3 worldPos;
 
 void main() {
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
+    gl_Position = scene.projMatrix * scene.viewMatrix * model.modelMatrix * vec4(inPosition, 1.0);
     fragColor = inColor;
     fragTexCoord = inTexCoord;
     normal = inNormal;
-    worldPos = (vec4(inPosition, 1.0) * ubo.model).xyz;
+    worldPos = (vec4(inPosition, 1.0) * model.modelMatrix).xyz;
 }
