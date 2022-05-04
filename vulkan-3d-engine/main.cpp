@@ -194,12 +194,12 @@ struct SceneBufferObject {
 };*/
 
 // Uniform Buffer object // Model Buffer object
-struct UniformBufferObject {
+struct ModelBufferObject {
     alignas(16) glm::mat4 model;
 };
 
 // Light Buffer object // Scene Buffer object
-struct LightBufferObject {
+struct SceneBufferObject {
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;
 
@@ -259,11 +259,11 @@ private:
     VkBuffer indexBuffer;
     VkDeviceMemory indexBufferMemory;
 
-    std::vector<VkBuffer> uniformBuffers;
-    std::vector<VkDeviceMemory> uniformBuffersMemory;
+    std::vector<VkBuffer> modelBuffers;
+    std::vector<VkDeviceMemory> modelBuffersMemory;
 
-    std::vector<VkBuffer> lightBuffers;
-    std::vector<VkDeviceMemory> lightBuffersMemory;
+    std::vector<VkBuffer> sceneBuffers;
+    std::vector<VkDeviceMemory> sceneBuffersMemory;
 
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
@@ -367,11 +367,11 @@ private:
         cleanupSwapChain();
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            vkDestroyBuffer(device, uniformBuffers[i], nullptr);
-            vkFreeMemory(device, uniformBuffersMemory[i], nullptr);
+            vkDestroyBuffer(device, modelBuffers[i], nullptr);
+            vkFreeMemory(device, modelBuffersMemory[i], nullptr);
 
-            vkDestroyBuffer(device, lightBuffers[i], nullptr);
-            vkFreeMemory(device, lightBuffersMemory[i], nullptr);
+            vkDestroyBuffer(device, sceneBuffers[i], nullptr);
+            vkFreeMemory(device, sceneBuffersMemory[i], nullptr);
         }
 
         vkDestroyDescriptorPool(device, descriptorPool, nullptr);
@@ -1187,22 +1187,22 @@ private:
     }
 
     void createUniformBuffers() {
-        VkDeviceSize bufferSize = sizeof(UniformBufferObject);
+        VkDeviceSize bufferSize = sizeof(ModelBufferObject);
 
-        uniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-        uniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+        modelBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+        modelBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+            createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, modelBuffers[i], modelBuffersMemory[i]);
         }
 
-        bufferSize = sizeof(LightBufferObject);
+        bufferSize = sizeof(SceneBufferObject);
 
-        lightBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-        lightBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+        sceneBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+        sceneBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, lightBuffers[i], lightBuffersMemory[i]);
+            createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, sceneBuffers[i], sceneBuffersMemory[i]);
         }
     }
 
@@ -1241,9 +1241,9 @@ private:
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             VkDescriptorBufferInfo bufferInfo{};
-            bufferInfo.buffer = uniformBuffers[i];
+            bufferInfo.buffer = modelBuffers[i];
             bufferInfo.offset = 0;
-            bufferInfo.range = sizeof(UniformBufferObject);
+            bufferInfo.range = sizeof(ModelBufferObject);
 
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -1251,9 +1251,9 @@ private:
             imageInfo.sampler = textureSampler;
 
             VkDescriptorBufferInfo lightBufferInfo{};
-            lightBufferInfo.buffer = lightBuffers[i];
+            lightBufferInfo.buffer = sceneBuffers[i];
             lightBufferInfo.offset = 0;
-            lightBufferInfo.range = sizeof(LightBufferObject);
+            lightBufferInfo.range = sizeof(SceneBufferObject);
 
             std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
 
@@ -1458,31 +1458,31 @@ private:
         auto currentTime = std::chrono::high_resolution_clock::now();
         float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();*/
 
-        UniformBufferObject ubo{};
-        ubo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));// *glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        ModelBufferObject mbo{};
+        mbo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));// *glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         
         //glm::vec3 cameraPos = glm::vec3(3.0f * sin(time * glm::radians(90.0f)), 3.0f * cos(time * glm::radians(90.0f)), 2.0);
 
         //ubo.view = glm::lookAt(cameraPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
         void* data;
-        vkMapMemory(device, uniformBuffersMemory[currentImage], 0, sizeof(ubo), 0, &data);
-        memcpy(data, &ubo, sizeof(ubo));
-        vkUnmapMemory(device, uniformBuffersMemory[currentImage]);
+        vkMapMemory(device, modelBuffersMemory[currentImage], 0, sizeof(mbo), 0, &data);
+        memcpy(data, &mbo, sizeof(mbo));
+        vkUnmapMemory(device, modelBuffersMemory[currentImage]);
 
-        LightBufferObject lbo{};
-        lbo.view = camera.getViewMatrix();
+        SceneBufferObject sbo{};
+        sbo.view = camera.getViewMatrix();
 
-        lbo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
-        lbo.proj[1][1] *= -1;
+        sbo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
+        sbo.proj[1][1] *= -1;
 
-        lbo.pos = glm::vec3(0.0f, 0.0f, 0.5f);
-        lbo.powerDensity = glm::vec3(2.0f, 2.0f, 2.0f);
+        sbo.pos = glm::vec3(0.0f, 0.0f, 0.5f);
+        sbo.powerDensity = glm::vec3(2.0f, 2.0f, 2.0f);
 
         void* lData;
-        vkMapMemory(device, lightBuffersMemory[currentImage], 0, sizeof(lbo), 0, &lData);
-        memcpy(lData, &lbo, sizeof(lbo));
-        vkUnmapMemory(device, lightBuffersMemory[currentImage]);
+        vkMapMemory(device, sceneBuffersMemory[currentImage], 0, sizeof(sbo), 0, &lData);
+        memcpy(lData, &sbo, sizeof(sbo));
+        vkUnmapMemory(device, sceneBuffersMemory[currentImage]);
     }
 
     void updateTime()

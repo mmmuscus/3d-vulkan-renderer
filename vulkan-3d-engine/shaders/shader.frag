@@ -1,7 +1,7 @@
 #version 450
 
 layout(binding = 1) uniform sampler2D texSampler;
-layout(binding = 2) uniform LightBufferObject {
+layout(binding = 2) uniform SceneBufferObject {
     mat4 viewMatrix;
     mat4 projMatrix;
     

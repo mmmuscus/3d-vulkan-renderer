@@ -1,9 +1,9 @@
 #version 450
 
-layout(binding = 0) uniform UniformBufferObject {
+layout(binding = 0) uniform ModelBufferObject {
     mat4 modelMatrix;
 } model;
-layout(binding = 2) uniform LightBufferObject {
+layout(binding = 2) uniform SceneBufferObject {
     mat4 viewMatrix;
     mat4 projMatrix;
     
