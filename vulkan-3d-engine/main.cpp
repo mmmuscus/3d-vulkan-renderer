@@ -153,7 +153,11 @@ struct SceneBufferObject {
     alignas(16) glm::vec3 powerDensity;
 };
 
-class HelloTriangleApplication {
+struct Object {
+    glm::mat4 model;
+};
+
+class VulkanEngine {
 public:
     void run() {
         initWindow();
@@ -227,6 +231,8 @@ private:
     float time;
     float deltaTime;
 
+    std::vector<Object> objects;
+
     bool framebufferResized = false;
 
     void initWindow() {
@@ -240,7 +246,7 @@ private:
     }
 
     static void framebufferResizeCallback(GLFWwindow* window, int width, int height) {
-        auto app = reinterpret_cast<HelloTriangleApplication*>(glfwGetWindowUserPointer(window));
+        auto app = reinterpret_cast<VulkanEngine*>(glfwGetWindowUserPointer(window));
         app->framebufferResized = true;
     }
 
@@ -1356,11 +1362,10 @@ private:
         VkBuffer vertexBuffers[] = { vertexBuffer };
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-
         vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
+        // for with all the Objects
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 0, nullptr);
-
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
         vkCmdEndRenderPass(commandBuffer);
@@ -1399,14 +1404,6 @@ private:
     }
 
     void updateUniformBuffer(uint32_t currentImage) {
-        ModelBufferObject mbo{};
-        mbo.model = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        
-        void* data;
-        vkMapMemory(device, modelBuffersMemory[currentImage], 0, sizeof(mbo), 0, &data);
-        memcpy(data, &mbo, sizeof(mbo));
-        vkUnmapMemory(device, modelBuffersMemory[currentImage]);
-
         SceneBufferObject sbo{};
         sbo.view = camera.getViewMatrix();
 
@@ -1416,10 +1413,18 @@ private:
         sbo.pos = glm::vec3(0.0f, 0.0f, 0.5f);
         sbo.powerDensity = glm::vec3(2.0f, 2.0f, 2.0f);
 
-        void* lData;
-        vkMapMemory(device, sceneBuffersMemory[currentImage], 0, sizeof(sbo), 0, &lData);
-        memcpy(lData, &sbo, sizeof(sbo));
+        void* sData;
+        vkMapMemory(device, sceneBuffersMemory[currentImage], 0, sizeof(sbo), 0, &sData);
+        memcpy(sData, &sbo, sizeof(sbo));
         vkUnmapMemory(device, sceneBuffersMemory[currentImage]);
+
+        ModelBufferObject mbo{};
+        mbo.model = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        
+        void* mData;
+        vkMapMemory(device, modelBuffersMemory[currentImage], 0, sizeof(mbo), 0, &mData);
+        memcpy(mData, &mbo, sizeof(mbo));
+        vkUnmapMemory(device, modelBuffersMemory[currentImage]);
     }
 
     void updateTime()
@@ -1706,7 +1711,7 @@ private:
 };
 
 int main() {
-    HelloTriangleApplication app;
+    VulkanEngine app;
 
     try {
         app.run();
