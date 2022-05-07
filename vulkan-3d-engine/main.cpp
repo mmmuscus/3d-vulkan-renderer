@@ -324,11 +324,13 @@ private:
         cleanupSwapChain();
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            vkDestroyBuffer(device, modelBuffers[i], nullptr);
-            vkFreeMemory(device, modelBuffersMemory[i], nullptr);
-
             vkDestroyBuffer(device, sceneBuffers[i], nullptr);
             vkFreeMemory(device, sceneBuffersMemory[i], nullptr);
+        }
+
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT * OBJECT_NUMBER; i++) {
+            vkDestroyBuffer(device, modelBuffers[i], nullptr);
+            vkFreeMemory(device, modelBuffersMemory[i], nullptr);
         }
 
         vkDestroyDescriptorPool(device, descriptorPool, nullptr);
@@ -1163,10 +1165,10 @@ private:
         // FROM: https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer
         size_t bufferSize = OBJECT_NUMBER * modelBufferDynamicAlignment;
 
-        modelBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-        modelBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+        modelBuffers.resize(MAX_FRAMES_IN_FLIGHT * OBJECT_NUMBER);
+        modelBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT * OBJECT_NUMBER);
 
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT * OBJECT_NUMBER; i++) {
             createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, modelBuffers[i], modelBuffersMemory[i]);
         }
 
@@ -1444,13 +1446,16 @@ private:
         memcpy(sData, &sbo, sizeof(sbo));
         vkUnmapMemory(device, sceneBuffersMemory[currentImage]);
 
-        ModelBufferObject mbo{};
-        mbo.model = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        
-        void* mData;
-        vkMapMemory(device, modelBuffersMemory[currentImage], 0, sizeof(mbo), 0, &mData);
-        memcpy(mData, &mbo, sizeof(mbo));
-        vkUnmapMemory(device, modelBuffersMemory[currentImage]);
+        for (int i = 0; i < OBJECT_NUMBER; i++)
+        {
+            ModelBufferObject mbo{};
+            mbo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f + i * 2.0f, 0.0f, 0.0f));
+
+            void* mData;
+            vkMapMemory(device, modelBuffersMemory[currentImage + i], i * modelBufferDynamicAlignment, sizeof(mbo), 0, &mData);
+            memcpy(mData, &mbo, sizeof(mbo));
+            vkUnmapMemory(device, modelBuffersMemory[currentImage + i]);
+        }
     }
 
     void updateTime()
