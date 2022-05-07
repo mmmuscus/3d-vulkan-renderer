@@ -1167,7 +1167,7 @@ private:
 
         size_t minUboAlignment = properties.limits.minUniformBufferOffsetAlignment;
         // sizeof(modelUniformBuffer) maybe???
-        modelBufferDynamicAlignment = sizeof(glm::mat4);
+        modelBufferDynamicAlignment = sizeof(ModelBufferObject);
         if (minUboAlignment > 0)
             modelBufferDynamicAlignment = (modelBufferDynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
 
@@ -1488,7 +1488,7 @@ private:
         for (size_t i = 0; i < OBJECT_NUMBER; i++)
         {
             ModelBufferObject mbo{};
-            mbo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f + i * 2.0f, 0.0f, 0.0f));
+            mbo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f + i * -2.0f, 0.0f, 0.0f));
 
             void* mData;
             vkMapMemory(device, modelBuffersMemory[currentImage + i], i * modelBufferDynamicAlignment, sizeof(mbo), 0, &mData);
