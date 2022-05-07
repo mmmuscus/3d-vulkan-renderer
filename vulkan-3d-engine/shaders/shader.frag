@@ -1,12 +1,13 @@
 #version 450
 
 layout(binding = 1) uniform sampler2D texSampler;
+
 layout(binding = 2) uniform SceneBufferObject {
     mat4 viewMatrix;
     mat4 projMatrix;
     
-    vec3 lightPos;
-    vec3 lightPowerDensity;
+    vec4 lightPos;
+    vec4 lightPowerDensity;
 } scene;
 
 layout(location = 0) in vec3 fragColor;
@@ -26,8 +27,8 @@ void main() {
     outColor = texture(texSampler, fragTexCoord);
     outColor = vec4(normal, 1.0);
 
-    vec3 lightDir = scene.lightPos - worldPos;
+    vec3 lightDir = scene.lightPos.xyz - worldPos;
 
     //outColor = vec4(0.0, 0.0, 0.0, 1.0);
-    outColor.xyz += shade(normalize(normal), normalize(lightDir), length(lightDir), scene.lightPowerDensity, texture(texSampler, fragTexCoord).xyz);
+    outColor.xyz += shade(normalize(normal), normalize(lightDir), length(lightDir), scene.lightPowerDensity.xyz, texture(texSampler, fragTexCoord).xyz);
 }

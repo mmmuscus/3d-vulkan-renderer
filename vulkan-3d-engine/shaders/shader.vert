@@ -3,12 +3,13 @@
 layout(binding = 0) uniform ModelBufferObject {
     mat4 modelMatrix;
 } model;
+
 layout(binding = 2) uniform SceneBufferObject {
     mat4 viewMatrix;
     mat4 projMatrix;
     
-    vec3 lightPos;
-    vec3 lightPowerDensity;
+    vec4 lightPos;
+    vec4 lightPowerDensity;
 } scene;
 
 layout(location = 0) in vec3 inPosition;

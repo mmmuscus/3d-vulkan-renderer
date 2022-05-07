@@ -149,8 +149,8 @@ struct SceneBufferObject {
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;
 
-    alignas(16) glm::vec3 pos;
-    alignas(16) glm::vec3 powerDensity;
+    alignas(16) glm::vec4 pos;
+    alignas(16) glm::vec4 powerDensity;
 };
 
 struct Object {
@@ -1412,8 +1412,8 @@ private:
         sbo.proj = glm::perspective(glm::radians(45.0f), swapChainExtent.width / (float)swapChainExtent.height, 0.1f, 10.0f);
         sbo.proj[1][1] *= -1;
 
-        sbo.pos = glm::vec3(0.0f, 0.0f, 0.5f);
-        sbo.powerDensity = glm::vec3(2.0f, 2.0f, 2.0f);
+        sbo.pos = glm::vec4(0.0f, 0.0f, 0.5f, 1.0f);
+        sbo.powerDensity = glm::vec4(2.0f, 2.0f, 2.0f, 1.0f);
 
         void* sData;
         vkMapMemory(device, sceneBuffersMemory[currentImage], 0, sizeof(sbo), 0, &sData);
