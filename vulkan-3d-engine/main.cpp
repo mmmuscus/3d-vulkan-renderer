@@ -1446,7 +1446,7 @@ private:
         memcpy(sData, &sbo, sizeof(sbo));
         vkUnmapMemory(device, sceneBuffersMemory[currentImage]);
 
-        for (int i = 0; i < OBJECT_NUMBER; i++)
+        for (size_t i = 0; i < OBJECT_NUMBER; i++)
         {
             ModelBufferObject mbo{};
             mbo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f + i * 2.0f, 0.0f, 0.0f));
