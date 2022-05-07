@@ -155,6 +155,8 @@ struct SceneBufferObject {
 
 struct Object {
     glm::mat4 model;
+
+    //vkBuffer vertex
 };
 
 class VulkanEngine {
@@ -637,12 +639,12 @@ private:
     }
 
     void createDescriptorSetLayout() {
-        VkDescriptorSetLayoutBinding uboLayoutBinding{};
-        uboLayoutBinding.binding = 0;
-        uboLayoutBinding.descriptorCount = 1;
-        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        uboLayoutBinding.pImmutableSamplers = nullptr;
-        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        VkDescriptorSetLayoutBinding modelLayoutBinding{};
+        modelLayoutBinding.binding = 0;
+        modelLayoutBinding.descriptorCount = 1;
+        modelLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        modelLayoutBinding.pImmutableSamplers = nullptr;
+        modelLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
         VkDescriptorSetLayoutBinding samplerLayoutBinding{};
         samplerLayoutBinding.binding = 1;
@@ -651,14 +653,14 @@ private:
         samplerLayoutBinding.pImmutableSamplers = nullptr;
         samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-        VkDescriptorSetLayoutBinding lightLayoutBinding{};
-        lightLayoutBinding.binding = 2;
-        lightLayoutBinding.descriptorCount = 1;
-        lightLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        lightLayoutBinding.pImmutableSamplers = nullptr;
-        lightLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT; // VK_SHADER_STAGE_ALL_GRAPHICS
+        VkDescriptorSetLayoutBinding sceneLayoutBinding{};
+        sceneLayoutBinding.binding = 2;
+        sceneLayoutBinding.descriptorCount = 1;
+        sceneLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        sceneLayoutBinding.pImmutableSamplers = nullptr;
+        sceneLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_VERTEX_BIT; // VK_SHADER_STAGE_ALL_GRAPHICS
 
-        std::array<VkDescriptorSetLayoutBinding, 3> bindings = { uboLayoutBinding, samplerLayoutBinding, lightLayoutBinding };
+        std::array<VkDescriptorSetLayoutBinding, 3> bindings = { modelLayoutBinding, samplerLayoutBinding, sceneLayoutBinding };
         VkDescriptorSetLayoutCreateInfo layoutInfo{};
         layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -1192,20 +1194,20 @@ private:
         }
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            VkDescriptorBufferInfo bufferInfo{};
-            bufferInfo.buffer = modelBuffers[i];
-            bufferInfo.offset = 0;
-            bufferInfo.range = sizeof(ModelBufferObject);
+            VkDescriptorBufferInfo modelBufferInfo{};
+            modelBufferInfo.buffer = modelBuffers[i];
+            modelBufferInfo.offset = 0;
+            modelBufferInfo.range = sizeof(ModelBufferObject);
 
             VkDescriptorImageInfo imageInfo{};
             imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             imageInfo.imageView = textureImageView;
             imageInfo.sampler = textureSampler;
 
-            VkDescriptorBufferInfo lightBufferInfo{};
-            lightBufferInfo.buffer = sceneBuffers[i];
-            lightBufferInfo.offset = 0;
-            lightBufferInfo.range = sizeof(SceneBufferObject);
+            VkDescriptorBufferInfo sceneBufferInfo{};
+            sceneBufferInfo.buffer = sceneBuffers[i];
+            sceneBufferInfo.offset = 0;
+            sceneBufferInfo.range = sizeof(SceneBufferObject);
 
             std::array<VkWriteDescriptorSet, 3> descriptorWrites{};
 
@@ -1215,7 +1217,7 @@ private:
             descriptorWrites[0].dstArrayElement = 0;
             descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             descriptorWrites[0].descriptorCount = 1;
-            descriptorWrites[0].pBufferInfo = &bufferInfo;
+            descriptorWrites[0].pBufferInfo = &modelBufferInfo;
 
             descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
             descriptorWrites[1].dstSet = descriptorSets[i];
@@ -1231,7 +1233,7 @@ private:
             descriptorWrites[2].dstArrayElement = 0;
             descriptorWrites[2].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             descriptorWrites[2].descriptorCount = 1;
-            descriptorWrites[2].pBufferInfo = &lightBufferInfo;
+            descriptorWrites[2].pBufferInfo = &sceneBufferInfo;
 
             vkUpdateDescriptorSets(device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
         }
@@ -1581,6 +1583,8 @@ private:
         return details;
     }
 
+    // if you want to use more than 8 dynamic buffers then check maxDescriptorSetUniformBuffersDynamic
+    // link: https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer
     bool isDeviceSuitable(VkPhysicalDevice device) {
         QueueFamilyIndices indices = findQueueFamilies(device);
 
