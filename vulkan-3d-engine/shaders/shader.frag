@@ -31,4 +31,13 @@ void main() {
 
     //outColor = vec4(0.0, 0.0, 0.0, 1.0);
     outColor.xyz += shade(normalize(normal), normalize(lightDir), length(lightDir), scene.lightPowerDensity.xyz, texture(texSampler, fragTexCoord).xyz);
+
+    // Displaying depth buffer for testing
+    /*float near = 0.1;
+    float far = 10.0;
+
+    float z = gl_FragCoord.z * 2.0 - 1.0;
+    float depth = (2.0 * near * far) / (far + near - z * (far - near));
+    depth = depth / far;
+    outColor = vec4(vec3(depth), 1.0);*/
 }
