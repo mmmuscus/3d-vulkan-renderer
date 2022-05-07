@@ -28,6 +28,7 @@
 #include <optional>
 #include <set>
 #include <unordered_map>
+#include <random>
 
 #include "Camera.h"
 #include "Vertex.h"
@@ -55,6 +56,11 @@ const bool enableValidationLayers = false;
 #else
 const bool enableValidationLayers = true;
 #endif
+
+float lerp(float a, float b, float f)
+{
+    return a + f * (b - a);
+}
 
 Camera camera = Camera(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 1.0f), -135.0f, -45.0f);
 
@@ -166,6 +172,9 @@ public:
     void run() {
         initWindow();
         initVulkan();
+
+        generateSSAOKernelAndNoise();
+
         mainLoop();
         cleanup();
     }
@@ -237,6 +246,10 @@ private:
     float deltaTime;
 
     std::vector<Object> objects;
+
+    //SSAO variables
+    std::vector<glm::vec3> ssaoKernel;
+    std::vector<glm::vec3> ssaoNoise;
 
     bool framebufferResized = false;
 
@@ -1422,6 +1435,32 @@ private:
                 throw std::runtime_error("failed to create synchronization objects for a frame!");
             }
         }
+    }
+
+    void generateSSAOKernelAndNoise() {
+        std::uniform_real_distribution<float> randomFloats(0.0, 1.0);
+        std::default_random_engine generator;
+
+        for (size_t i = 0; i < 64; ++i)
+        {
+            glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
+            sample = glm::normalize(sample);
+            sample *= randomFloats(generator);
+
+            float scale = float(i) / 64.0f;
+            scale = lerp(0.1, 1.0, scale * scale);
+            sample *= scale;
+
+            ssaoKernel.push_back(sample);
+        }
+
+        for (size_t i = 0; i < 16; i++)
+        {
+            glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f);
+            ssaoNoise.push_back(noise);
+        }
+
+        // TODO: generate Noise texture
     }
 
     void initGlfwInputHandling() {
