@@ -32,6 +32,8 @@
 #include "Camera.h"
 #include "Vertex.h"
 
+#define OBJECT_NUMBER 2
+
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
 
@@ -213,6 +215,7 @@ private:
 
     std::vector<VkBuffer> modelBuffers;
     std::vector<VkDeviceMemory> modelBuffersMemory;
+    size_t modelBufferDynamicAlignment;
 
     std::vector<VkBuffer> sceneBuffers;
     std::vector<VkDeviceMemory> sceneBuffersMemory;
@@ -468,6 +471,7 @@ private:
                 break;
             }
         }
+
 
         if (physicalDevice == VK_NULL_HANDLE) {
             throw std::runtime_error("failed to find a suitable GPU!");
@@ -1141,7 +1145,23 @@ private:
     }
 
     void createUniformBuffers() {
-        VkDeviceSize bufferSize = sizeof(ModelBufferObject);
+        // Calculate dynamic alignment
+        // FROM: https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer
+        VkPhysicalDeviceProperties properties;
+        vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+
+        size_t minUboAlignment = properties.limits.minUniformBufferOffsetAlignment;
+        // sizeof(modelUniformBuffer) maybe???
+        modelBufferDynamicAlignment = sizeof(glm::mat4);
+        if (minUboAlignment > 0)
+            modelBufferDynamicAlignment = (modelBufferDynamicAlignment + minUboAlignment - 1) & ~(minUboAlignment - 1);
+
+        // Here we create the Uniform Buffers
+        VkDeviceSize modelBufferSize = sizeof(ModelBufferObject);
+
+        // TODO: dont hardcode the number of objects in the scene
+        // FROM: https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer
+        size_t bufferSize = OBJECT_NUMBER * modelBufferDynamicAlignment;
 
         modelBuffers.resize(MAX_FRAMES_IN_FLIGHT);
         modelBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
@@ -1150,13 +1170,13 @@ private:
             createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, modelBuffers[i], modelBuffersMemory[i]);
         }
 
-        bufferSize = sizeof(SceneBufferObject);
+        VkDeviceSize sceneBufferSize = sizeof(SceneBufferObject);
 
         sceneBuffers.resize(MAX_FRAMES_IN_FLIGHT);
         sceneBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-            createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, sceneBuffers[i], sceneBuffersMemory[i]);
+            createBuffer(sceneBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, sceneBuffers[i], sceneBuffersMemory[i]);
         }
     }
 
@@ -1367,9 +1387,12 @@ private:
         vkCmdBindIndexBuffer(commandBuffer, indexBuffer, 0, VK_INDEX_TYPE_UINT32);
 
         // for with all the Objects
-        uint32_t dynamicOffset = 0;
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 1, &dynamicOffset);
-        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+        for (uint32_t i = 0; i < OBJECT_NUMBER; i++)
+        {
+            uint32_t dynamicOffset = i * static_cast<uint32_t>(modelBufferDynamicAlignment);
+            vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrame], 1, &dynamicOffset);
+            vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
+        }
 
         vkCmdEndRenderPass(commandBuffer);
 
@@ -1585,7 +1608,7 @@ private:
     }
 
     // if you want to use more than 8 dynamic buffers then check maxDescriptorSetUniformBuffersDynamic
-    // link: https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer
+    // FROM: https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer
     bool isDeviceSuitable(VkPhysicalDevice device) {
         QueueFamilyIndices indices = findQueueFamilies(device);
 
