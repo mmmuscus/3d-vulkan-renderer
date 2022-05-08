@@ -341,7 +341,7 @@ private:
             vkFreeMemory(device, sceneBuffersMemory[i], nullptr);
         }
 
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT * OBJECT_NUMBER; i++) {
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             vkDestroyBuffer(device, modelBuffers[i], nullptr);
             vkFreeMemory(device, modelBuffersMemory[i], nullptr);
         }
@@ -1178,10 +1178,10 @@ private:
         // FROM: https://github.com/SaschaWillems/Vulkan/tree/master/examples/dynamicuniformbuffer
         size_t bufferSize = OBJECT_NUMBER * modelBufferDynamicAlignment;
 
-        modelBuffers.resize(MAX_FRAMES_IN_FLIGHT * OBJECT_NUMBER);
-        modelBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT * OBJECT_NUMBER);
+        modelBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+        modelBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
 
-        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT * OBJECT_NUMBER; i++) {
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
             createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, modelBuffers[i], modelBuffersMemory[i]);
         }
 
@@ -1470,7 +1470,7 @@ private:
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
-    void updateUniformBuffer(uint32_t currentImage) {
+    void updateUniformBuffer(uint32_t currentFrame) {
         SceneBufferObject sbo{};
         sbo.view = camera.getViewMatrix();
 
@@ -1481,9 +1481,9 @@ private:
         sbo.powerDensity = glm::vec4(2.0f, 2.0f, 2.0f, 1.0f);
 
         void* sData;
-        vkMapMemory(device, sceneBuffersMemory[currentImage], 0, sizeof(sbo), 0, &sData);
+        vkMapMemory(device, sceneBuffersMemory[currentFrame], 0, sizeof(sbo), 0, &sData);
         memcpy(sData, &sbo, sizeof(sbo));
-        vkUnmapMemory(device, sceneBuffersMemory[currentImage]);
+        vkUnmapMemory(device, sceneBuffersMemory[currentFrame]);
 
         for (size_t i = 0; i < OBJECT_NUMBER; i++)
         {
@@ -1491,9 +1491,9 @@ private:
             mbo.model = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f + i * -2.0f, 0.0f, 0.0f));
 
             void* mData;
-            vkMapMemory(device, modelBuffersMemory[currentImage + i], i * modelBufferDynamicAlignment, sizeof(mbo), 0, &mData);
+            vkMapMemory(device, modelBuffersMemory[currentFrame], i * modelBufferDynamicAlignment, sizeof(mbo), 0, &mData);
             memcpy(mData, &mbo, sizeof(mbo));
-            vkUnmapMemory(device, modelBuffersMemory[currentImage + i]);
+            vkUnmapMemory(device, modelBuffersMemory[currentFrame]);
         }
     }
 
