@@ -33,7 +33,7 @@
 #include "Camera.h"
 #include "Vertex.h"
 
-#define OBJECT_NUMBER 2
+#define OBJECT_NUMBER 4
 
 const uint32_t WIDTH = 800;
 const uint32_t HEIGHT = 600;
@@ -817,6 +817,8 @@ private:
         vkDestroyShaderModule(device, vertShaderModule, nullptr);
     }
 
+    // creating an extra framebuffer for testing for g-buffer
+    // LINK: https://www.saschawillems.de/blog/2018/07/19/vulkan-input-attachments-and-sub-passes/
     void createFramebuffers() {
         swapChainFramebuffers.resize(swapChainImageViews.size());
 

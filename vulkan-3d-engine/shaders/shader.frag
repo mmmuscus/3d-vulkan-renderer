@@ -29,7 +29,7 @@ void main() {
 
     vec3 lightDir = scene.lightPos.xyz - worldPos;
 
-    //outColor = vec4(0.0, 0.0, 0.0, 1.0);
+    outColor = vec4(0.0, 0.0, 0.0, 1.0);
     outColor.xyz += shade(normalize(normal), normalize(lightDir), length(lightDir), scene.lightPowerDensity.xyz, texture(texSampler, fragTexCoord).xyz);
 
     // Displaying depth buffer for testing
