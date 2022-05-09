@@ -210,6 +210,10 @@ private:
     VkDeviceMemory depthImageMemory;
     VkImageView depthImageView;
 
+    VkImage albedoImage;
+    VkDeviceMemory albedoImageMemory;
+    VkImageView albedoImageView;
+
     VkImage textureImage;
     VkDeviceMemory textureImageMemory;
     VkImageView textureImageView;
@@ -281,6 +285,7 @@ private:
         createGraphicsPipeline();
         createCommandPool();
         createDepthResources();
+        createAlbedoResources();
         createFramebuffers();
         createTextureImage();
         createTextureImageView();
@@ -317,6 +322,10 @@ private:
         vkDestroyImageView(device, depthImageView, nullptr);
         vkDestroyImage(device, depthImage, nullptr);
         vkFreeMemory(device, depthImageMemory, nullptr);
+
+        vkDestroyImageView(device, albedoImageView, nullptr);
+        vkDestroyImage(device, albedoImage, nullptr);
+        vkFreeMemory(device, albedoImageMemory, nullptr);
 
         for (auto framebuffer : swapChainFramebuffers) {
             vkDestroyFramebuffer(device, framebuffer, nullptr);
@@ -823,9 +832,10 @@ private:
         swapChainFramebuffers.resize(swapChainImageViews.size());
 
         for (size_t i = 0; i < swapChainImageViews.size(); i++) {
-            std::array<VkImageView, 2> attachments = {
+            std::array<VkImageView, 3> attachments = {
                 swapChainImageViews[i],
-                depthImageView
+                depthImageView,
+                albedoImageView
             };
 
             VkFramebufferCreateInfo framebufferInfo{};
@@ -861,6 +871,15 @@ private:
 
         createImage(swapChainExtent.width, swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, depthImage, depthImageMemory);
         depthImageView = createImageView(depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
+    }
+
+    // check if this is what we need for the albedo createImage
+    // LINK: https://github.com/SaschaWillems/Vulkan/blob/master/examples/ssao/ssao.cpp
+    void createAlbedoResources() {
+        VkFormat colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
+
+        createImage(swapChainExtent.width, swapChainExtent.height, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, albedoImage, albedoImageMemory);
+        albedoImageView = createImageView(albedoImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
