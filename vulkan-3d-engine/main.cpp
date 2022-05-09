@@ -247,7 +247,7 @@ private:
 
     std::vector<Object> objects;
 
-    //SSAO variables
+    // SSAO variables
     std::vector<glm::vec3> ssaoKernel;
     std::vector<glm::vec3> ssaoNoise;
 
