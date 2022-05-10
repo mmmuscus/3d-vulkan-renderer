@@ -27,5 +27,5 @@ void main() {
     fragColor = inColor;
     fragTexCoord = inTexCoord;
     normal = inNormal;
-    worldPos = (vec4(inPosition, 1.0) * model.modelMatrix).xyz;
+    worldPos = (model.modelMatrix * vec4(inPosition, 1.0)).xyz;
 }

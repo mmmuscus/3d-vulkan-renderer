@@ -24,8 +24,8 @@ vec3 shade(vec3 normal, vec3 lightDir, float lightDist, vec3 powerDensity, vec3 
 }
 
 void main() {
-    outColor = texture(texSampler, fragTexCoord);
-    outColor = vec4(normal, 1.0);
+    /*outColor = texture(texSampler, fragTexCoord);
+    outColor = vec4(normal, 1.0);*/
 
     vec3 lightDir = scene.lightPos.xyz - worldPos;
 
