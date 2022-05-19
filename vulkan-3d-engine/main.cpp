@@ -214,6 +214,16 @@ private:
     VkDeviceMemory albedoImageMemory;
     VkImageView albedoImageView;
 
+    VkImage normalImage;
+    VkDeviceMemory normalImageMemory;
+    VkImageView normalImageView;
+
+    VkImage worldPosImage;
+    VkDeviceMemory worldPosImageMemory;
+    VkImageView worldPosImageView;
+
+    VkSampler colorSampler;
+
     VkImage textureImage;
     VkDeviceMemory textureImageMemory;
     VkImageView textureImageView;
@@ -286,6 +296,8 @@ private:
         createCommandPool();
         createDepthResources();
         createAlbedoResources();
+        //createNormalResources();
+        //createWorldPosResources();
         createFramebuffers();
         createTextureImage();
         createTextureImageView();
@@ -326,6 +338,14 @@ private:
         vkDestroyImageView(device, albedoImageView, nullptr);
         vkDestroyImage(device, albedoImage, nullptr);
         vkFreeMemory(device, albedoImageMemory, nullptr);
+
+        vkDestroyImageView(device, normalImageView, nullptr);
+        vkDestroyImage(device, normalImage, nullptr);
+        vkFreeMemory(device, normalImageMemory, nullptr);
+
+        vkDestroyImageView(device, worldPosImageView, nullptr);
+        vkDestroyImage(device, worldPosImage, nullptr);
+        vkFreeMemory(device, worldPosImageMemory, nullptr);
 
         for (auto framebuffer : swapChainFramebuffers) {
             vkDestroyFramebuffer(device, framebuffer, nullptr);
@@ -609,16 +629,38 @@ private:
         }
     }
 
+    // updated with te following link
+    // LINK: https://github.com/SaschaWillems/Vulkan/blob/master/examples/deferred/deferred.cpp
     void createRenderPass() {
-        VkAttachmentDescription colorAttachment{};
-        colorAttachment.format = swapChainImageFormat;
-        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        /*VkAttachmentDescription worldPosAttachment{};
+        worldPosAttachment.format = swapChainImageFormat;
+        worldPosAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        worldPosAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        worldPosAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        worldPosAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        worldPosAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        worldPosAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        worldPosAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+        VkAttachmentDescription normalAttachment{};
+        normalAttachment.format = swapChainImageFormat;
+        normalAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        normalAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        normalAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        normalAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        normalAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        normalAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        normalAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;*/
+
+        VkAttachmentDescription albedoAttachment{};
+        albedoAttachment.format = swapChainImageFormat;
+        albedoAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        albedoAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        albedoAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        albedoAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        albedoAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        albedoAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        albedoAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
         VkAttachmentDescription depthAttachment{};
         depthAttachment.format = findDepthFormat();
@@ -637,6 +679,15 @@ private:
         VkAttachmentReference depthAttachmentRef{};
         depthAttachmentRef.attachment = 1;
         depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        
+        /*std::vector<VkAttachmentReference> colorAttachmentRefs;
+        colorAttachmentRefs.push_back({0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+        colorAttachmentRefs.push_back({1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+        colorAttachmentRefs.push_back({2, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+
+        VkAttachmentReference depthAttachmentRef{};
+        depthAttachmentRef.attachment = 3;
+        depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;*/
 
         VkSubpassDescription subpass{};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -652,7 +703,25 @@ private:
         dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-        std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
+        /*std::array<VkSubpassDependency, 2> dependencies;
+
+        dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependencies[0].dstSubpass = 0;
+        dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+        dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+        dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+        dependencies[1].srcSubpass = 0;
+        dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+        dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+        dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+        dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;*/
+
+        std::array<VkAttachmentDescription, 2> attachments = { albedoAttachment, depthAttachment };
         VkRenderPassCreateInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
         renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -661,6 +730,16 @@ private:
         renderPassInfo.pSubpasses = &subpass;
         renderPassInfo.dependencyCount = 1;
         renderPassInfo.pDependencies = &dependency;
+
+        /*std::array<VkAttachmentDescription, 4> attachments = {worldPosAttachment, normalAttachment, albedoAttachment, depthAttachment};
+        VkRenderPassCreateInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        renderPassInfo.pAttachments = attachments.data();
+        renderPassInfo.subpassCount = 1;
+        renderPassInfo.pSubpasses = &subpass;
+        renderPassInfo.dependencyCount = 2;
+        renderPassInfo.pDependencies = dependencies.data();*/
 
         if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
             throw std::runtime_error("failed to create render pass!");
@@ -837,6 +916,12 @@ private:
                 swapChainImageViews[i],
                 depthImageView,
                 albedoImageView
+
+                /*worldPosImageView,
+                normalImageView,
+                albedoImageView,
+                depthImageView,
+                swapChainImageViews[i]*/
             };
 
             VkFramebufferCreateInfo framebufferInfo{};
@@ -851,6 +936,21 @@ private:
             if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &swapChainFramebuffers[i]) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create framebuffer!");
             }
+
+            /*VkSamplerCreateInfo sampler = {};
+            sampler.magFilter = VK_FILTER_NEAREST;
+            sampler.minFilter = VK_FILTER_NEAREST;
+            sampler.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+            sampler.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+            sampler.addressModeV = sampler.addressModeU;
+            sampler.addressModeW = sampler.addressModeU;
+            sampler.mipLodBias = 0.0f;
+            sampler.maxAnisotropy = 1.0f;
+            sampler.minLod = 0.0f;
+            sampler.maxLod = 1.0f;
+            sampler.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+            
+            vkCreateSampler(device, &sampler, nullptr, &colorSampler);*/
         }
     }
 
@@ -881,6 +981,20 @@ private:
 
         createImage(swapChainExtent.width, swapChainExtent.height, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, albedoImage, albedoImageMemory);
         albedoImageView = createImageView(albedoImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+    }
+
+    void createNormalResources() {
+        VkFormat normalFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+
+        createImage(swapChainExtent.width, swapChainExtent.height, normalFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, normalImage, normalImageMemory);
+        normalImageView = createImageView(normalImage, normalFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+    }
+
+    void createWorldPosResources() {
+        VkFormat worldPosFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
+
+        createImage(swapChainExtent.width, swapChainExtent.height, worldPosFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, worldPosImage, worldPosImageMemory);
+        worldPosImageView = createImageView(worldPosImage, worldPosFormat, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
     VkFormat findSupportedFormat(const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
@@ -1488,6 +1602,13 @@ private:
         renderPassInfo.framebuffer = swapChainFramebuffers[imageIndex];
         renderPassInfo.renderArea.offset = { 0, 0 };
         renderPassInfo.renderArea.extent = swapChainExtent;
+
+        /*std::array<VkClearValue, 5> clearValues{};
+        clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
+        clearValues[1].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
+        clearValues[2].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
+        clearValues[3].depthStencil = { 1.0f, 0 };
+        clearValues[4].color = { {0.0f, 0.0f, 0.0f, 1.0f} };*/
 
         std::array<VkClearValue, 2> clearValues{};
         clearValues[0].color = { {0.0f, 0.0f, 0.0f, 1.0f} };
