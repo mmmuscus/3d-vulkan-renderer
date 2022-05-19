@@ -1175,6 +1175,31 @@ private:
 
                 // Tangent and bitangent calculations
                 // LINK: https://learnopengl.com/Advanced-Lighting/Normal-Mapping
+                glm::vec3 edge0 = vertex1.pos - vertex0.pos;
+                glm::vec3 edge1 = vertex2.pos - vertex0.pos;
+
+                glm::vec2 deltaUV0 = vertex1.texCoord - vertex0.texCoord;
+                glm::vec2 deltaUV1 = vertex2.texCoord - vertex0.texCoord;
+
+                float f = 1.0f / (deltaUV0.x * deltaUV1.y - deltaUV1.x * deltaUV0.y);
+
+                glm::vec3 tan;
+                tan.x = f * (deltaUV1.y * edge0.x - deltaUV0.y * edge1.x);
+                tan.y = f * (deltaUV1.y * edge0.y - deltaUV0.y * edge1.y);
+                tan.z = f * (deltaUV1.y * edge0.z - deltaUV0.y * edge1.z);
+
+                glm::vec3 bit;
+                bit.x = f * (-deltaUV1.x * edge0.x + deltaUV0.x * edge1.x);
+                bit.x = f * (-deltaUV1.x * edge0.y + deltaUV0.x * edge1.y);
+                bit.x = f * (-deltaUV1.x * edge0.z + deltaUV0.x * edge1.z);
+
+                vertex0.tangent = tan;
+                vertex1.tangent = tan;
+                vertex2.tangent = tan;
+
+                vertex0.biTangent = bit;
+                vertex1.biTangent = bit;
+                vertex2.biTangent = bit;
 
                 if (uniqueVertices.count(vertex0) == 0) {
                     uniqueVertices[vertex0] = static_cast<uint32_t>(vertices.size());
