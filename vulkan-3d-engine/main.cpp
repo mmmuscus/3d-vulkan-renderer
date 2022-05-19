@@ -1109,34 +1109,91 @@ private:
         std::unordered_map<Vertex, uint32_t> uniqueVertices{};
 
         for (const auto& shape : shapes) {
-            for (const auto& index : shape.mesh.indices) {
-                Vertex vertex{};
+            for (size_t i = 0; i < shape.mesh.indices.size(); i += 3) {// const auto & index : shape.mesh.indices) {
+                Vertex vertex0{};
+                Vertex vertex1{};
+                Vertex vertex2{};
 
-                vertex.pos = {
-                    attrib.vertices[3 * index.vertex_index + 0],
-                    attrib.vertices[3 * index.vertex_index + 1],
-                    attrib.vertices[3 * index.vertex_index + 2]
+                const auto& index0 = shape.mesh.indices[i];
+                const auto& index1 = shape.mesh.indices[i + 1];
+                const auto& index2 = shape.mesh.indices[i + 2];
+
+                vertex0.pos = {
+                    attrib.vertices[3 * index0.vertex_index + 0],
+                    attrib.vertices[3 * index0.vertex_index + 1],
+                    attrib.vertices[3 * index0.vertex_index + 2]
                 };
 
-                vertex.normal = {
-                    attrib.normals[3 * index.normal_index + 0],
-                    attrib.normals[3 * index.normal_index + 1],
-                    attrib.normals[3 * index.normal_index + 2]
+                vertex1.pos = {
+                    attrib.vertices[3 * index1.vertex_index + 0],
+                    attrib.vertices[3 * index1.vertex_index + 1],
+                    attrib.vertices[3 * index1.vertex_index + 2]
                 };
 
-                vertex.texCoord = {
-                    attrib.texcoords[2 * index.texcoord_index + 0],
-                    1.0f - attrib.texcoords[2 * index.texcoord_index + 1]
+                vertex2.pos = {
+                    attrib.vertices[3 * index2.vertex_index + 0],
+                    attrib.vertices[3 * index2.vertex_index + 1],
+                    attrib.vertices[3 * index2.vertex_index + 2]
                 };
 
-                vertex.color = { 1.0f, 1.0f, 1.0f };
+                vertex0.normal = {
+                    attrib.normals[3 * index0.normal_index + 0],
+                    attrib.normals[3 * index0.normal_index + 1],
+                    attrib.normals[3 * index0.normal_index + 2]
+                };
 
-                if (uniqueVertices.count(vertex) == 0) {
-                    uniqueVertices[vertex] = static_cast<uint32_t>(vertices.size());
-                    vertices.push_back(vertex);
+                vertex1.normal = {
+                    attrib.normals[3 * index1.normal_index + 0],
+                    attrib.normals[3 * index1.normal_index + 1],
+                    attrib.normals[3 * index1.normal_index + 2]
+                };
+
+                vertex2.normal = {
+                    attrib.normals[3 * index2.normal_index + 0],
+                    attrib.normals[3 * index2.normal_index + 1],
+                    attrib.normals[3 * index2.normal_index + 2]
+                };
+
+                vertex0.texCoord = {
+                    attrib.texcoords[2 * index0.texcoord_index + 0],
+                    1.0f - attrib.texcoords[2 * index0.texcoord_index + 1]
+                };
+
+                vertex1.texCoord = {
+                    attrib.texcoords[2 * index1.texcoord_index + 0],
+                    1.0f - attrib.texcoords[2 * index1.texcoord_index + 1]
+                };
+
+                vertex2.texCoord = {
+                    attrib.texcoords[2 * index2.texcoord_index + 0],
+                    1.0f - attrib.texcoords[2 * index2.texcoord_index + 1]
+                };
+
+                vertex0.color = { 1.0f, 1.0f, 1.0f };
+                vertex1.color = { 1.0f, 1.0f, 1.0f };
+                vertex2.color = { 1.0f, 1.0f, 1.0f };
+
+                // Tangent and bitangent calculations
+                // LINK: https://learnopengl.com/Advanced-Lighting/Normal-Mapping
+
+                if (uniqueVertices.count(vertex0) == 0) {
+                    uniqueVertices[vertex0] = static_cast<uint32_t>(vertices.size());
+                    vertices.push_back(vertex0);
                 }
 
-                indices.push_back(uniqueVertices[vertex]);
+                if (uniqueVertices.count(vertex1) == 0) {
+                    uniqueVertices[vertex1] = static_cast<uint32_t>(vertices.size());
+                    vertices.push_back(vertex1);
+                }
+
+                if (uniqueVertices.count(vertex2) == 0) {
+                    uniqueVertices[vertex2] = static_cast<uint32_t>(vertices.size());
+                    vertices.push_back(vertex2);
+                }
+
+                indices.push_back(uniqueVertices[vertex0]);
+                indices.push_back(uniqueVertices[vertex1]);
+                indices.push_back(uniqueVertices[vertex2]);
             }
         }
     }
