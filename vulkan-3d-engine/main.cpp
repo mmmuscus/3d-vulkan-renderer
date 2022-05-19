@@ -410,6 +410,7 @@ private:
         createRenderPass();
         createGraphicsPipeline();
         createDepthResources();
+        createAlbedoResources();
         createFramebuffers();
     }
 
@@ -878,7 +879,7 @@ private:
     void createAlbedoResources() {
         VkFormat colorFormat = VK_FORMAT_R8G8B8A8_UNORM;
 
-        createImage(swapChainExtent.width, swapChainExtent.height, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, albedoImage, albedoImageMemory);
+        createImage(swapChainExtent.width, swapChainExtent.height, colorFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, albedoImage, albedoImageMemory);
         albedoImageView = createImageView(albedoImage, colorFormat, VK_IMAGE_ASPECT_COLOR_BIT);
     }
 
