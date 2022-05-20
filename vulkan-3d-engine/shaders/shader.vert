@@ -23,11 +23,18 @@ layout(location = 0) out vec3 fragColor;
 layout(location = 1) out vec2 fragTexCoord;
 layout(location = 2) out vec3 normal;
 layout(location = 3) out vec3 worldPos;
+layout(location = 4) out mat3 TBN;
 
 void main() {
     gl_Position = scene.projMatrix * scene.viewMatrix * model.modelMatrix * vec4(inPosition, 1.0);
+    worldPos = (model.modelMatrix * vec4(inPosition, 1.0)).xyz;
+
     fragColor = inColor;
     fragTexCoord = inTexCoord;
     normal = inNormal;
-    worldPos = (model.modelMatrix * vec4(inPosition, 1.0)).xyz;
+
+    vec3 T = normalize(vec3(model.modelMatrix * vec4(inTangent, 0.0)));
+    vec3 B = normalize(vec3(model.modelMatrix * vec4(inBiTangent, 0.0)));
+    vec3 N = normalize(vec3(model.modelMatrix * vec4(inNormal, 0.0)));
+    TBN = mat3(T, B, N);
 }
